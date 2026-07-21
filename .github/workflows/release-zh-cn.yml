@@ -1,0 +1,64 @@
+name: Release Simplified Chinese edition
+
+on:
+  push:
+    tags:
+      - "zh-cn-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Resolve release version
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^zh-cn-v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') {
+            throw "Tag must use zh-cn-vX.Y.Z: $env:GITHUB_REF_NAME"
+          }
+          "PLUGIN_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "RELEASE_ASSET=dist/Helldivers2Dock-zh-CN-$version.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Ensure MinGW compiler is available
+        shell: pwsh
+        run: |
+          if (-not (Get-Command g++ -ErrorAction SilentlyContinue)) {
+            choco install mingw --no-progress -y
+            "C:\tools\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and test Simplified Chinese edition
+        run: npm run build:zh-CN
+
+      - name: Package Simplified Chinese edition
+        run: npm run package:zh-CN
+
+      - name: Publish Simplified Chinese release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if (gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY 2>$null) {
+            gh release upload $env:GITHUB_REF_NAME $env:RELEASE_ASSET --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $env:GITHUB_REF_NAME $env:RELEASE_ASSET --repo $env:GITHUB_REPOSITORY --title "Helldivers2Dock 简体中文 $env:PLUGIN_VERSION" --generate-notes
+          }

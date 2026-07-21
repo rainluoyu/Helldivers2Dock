@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible plugin or macro problem
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Edition
+      options:
+        - English
+        - Simplified Chinese
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Plugin and Stream Dock versions
+      placeholder: "Plugin 1.1.0; Stream Dock 3.10.188.226"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Include the action name, expected result, and actual result.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed private `.SDProfile` files, account data, and personal paths.
+          required: true

@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+build/
+dist/
+*.sdPlugin/
+*.log
+
+# Private local Stream Dock profiles
+*.SDProfile
+
+# Environment and editor files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# OS/compiler output
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib

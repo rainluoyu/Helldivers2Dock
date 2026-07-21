@@ -1,0 +1,31 @@
+name: Localization correction
+description: Report an incorrect or outdated localized label
+title: "[i18n]: "
+labels:
+  - localization
+body:
+  - type: input
+    id: action
+    attributes:
+      label: Stratagem/action
+    validations:
+      required: true
+  - type: input
+    id: current
+    attributes:
+      label: Current plugin label
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: Proposed official label
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Official source
+      description: Provide a game screenshot, official page, or exact localization source context.
+    validations:
+      required: true

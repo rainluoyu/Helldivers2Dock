@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.locale }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        locale:
+          - en
+          - zh-CN
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Ensure MinGW compiler is available
+        shell: pwsh
+        run: |
+          if (-not (Get-Command g++ -ErrorAction SilentlyContinue)) {
+            choco install mingw --no-progress -y
+            "C:\tools\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate workflow files
+        run: npm run check:workflows
+
+      - name: Build and test edition
+        shell: pwsh
+        run: npm run "build:${{ matrix.locale }}"
+
+      - name: Verify clean release package
+        shell: pwsh
+        run: npm run "package:${{ matrix.locale }}"

@@ -1,0 +1,34 @@
+{
+  "name": "helldivers2dock",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Helldivers 2 stratagem macro plugins for Mirabox/Ajazz Stream Dock devices",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "refresh-data": "node scripts/sync-stratagems.mjs",
+    "prepare:variants": "node scripts/create-variants.mjs --locale all",
+    "build:node": "node scripts/clean-runtime.mjs && ncc build src/index.js -m -o build/com.n4pro.helldivers2dock.sdPlugin/plugin",
+    "build:helper": "node scripts/build-helper.mjs",
+    "build:runtime": "npm run build:node && npm run build:helper",
+    "copy:runtime": "node scripts/copy-runtime.mjs",
+    "build": "npm run prepare:variants && npm run build:runtime && npm run copy:runtime && npm run validate",
+    "build:en": "node scripts/create-variants.mjs --locale en && npm run build:runtime && node scripts/validate.mjs --locale en && node scripts/test-registration.mjs --locale en",
+    "build:zh-CN": "node scripts/create-variants.mjs --locale zh-CN && npm run build:runtime && npm run copy:runtime && node scripts/validate.mjs --locale zh-CN && node scripts/test-registration.mjs --locale zh-CN",
+    "validate": "node scripts/validate.mjs --locale all && node scripts/test-registration.mjs --locale all",
+    "check:workflows": "node scripts/validate-workflows.mjs",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Locale all",
+    "package:en": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Locale en",
+    "package:zh-CN": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Locale zh-CN",
+    "ci": "npm run build && npm run check:workflows"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
+    "yaml": "^2.8.1"
+  }
+}
