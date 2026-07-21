@@ -28,7 +28,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.3",
+    "@vercel/ncc": "^0.44.1",
     "yaml": "^2.8.1"
   }
 }
