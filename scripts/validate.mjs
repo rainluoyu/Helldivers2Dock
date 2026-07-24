@@ -29,13 +29,18 @@ for (const variant of selected) {
   if (enLocale.Name !== locale.plugin.name || zhLocale.Name !== locale.plugin.name) {
     errors.push(`${variant.locale}: Stream Dock locale files do not preserve the edition language`);
   }
-  if (manifest.Actions.length !== catalog.stratagems.length) {
-    errors.push(`${variant.locale}: manifest has ${manifest.Actions.length} actions but catalog has ${catalog.stratagems.length}`);
+  if (manifest.Actions.length !== catalog.stratagems.length + 1) {
+    errors.push(`${variant.locale}: manifest has ${manifest.Actions.length} actions; expected ${catalog.stratagems.length} stratagems plus the input-delay knob`);
   }
   if (catalog.stratagems.length < 100) errors.push(`${variant.locale}: catalog only has ${catalog.stratagems.length} items`);
 
   const actionUuids = new Set(manifest.Actions.map((action) => action.UUID));
   if (actionUuids.size !== manifest.Actions.length) errors.push(`${variant.locale}: duplicate action UUIDs`);
+  const inputDelayAction = manifest.Actions.find((action) => action.UUID === `${locale.pluginId}.input-delay`);
+  if (!inputDelayAction) errors.push(`${variant.locale}: input-delay knob action is missing from manifest`);
+  else if (inputDelayAction.Controllers.length !== 1 || inputDelayAction.Controllers[0] !== 'Knob') {
+    errors.push(`${variant.locale}: input-delay action must target the Mirabox Knob controller`);
+  }
 
   for (const item of catalog.stratagems) {
     if (!/^[UDLR]+$/.test(item.code)) errors.push(`${variant.locale}: ${item.name} has invalid code ${item.code}`);
@@ -56,12 +61,19 @@ for (const variant of selected) {
   }
 
   for (const relative of [
+    'config.ini',
     'plugin/index.js',
     'plugin/bin/StratagemInput.exe',
     'static/plugin-icon.png'
   ]) {
     try { await stat(path.join(pluginDir, relative)); }
     catch { errors.push(`${variant.locale}: plugin is missing ${relative}`); }
+  }
+  for (const shadowedRootFile of ['plugin/config.ini', 'plugin/stratagems.json']) {
+    try {
+      await stat(path.join(pluginDir, shadowedRootFile));
+      errors.push(`${variant.locale}: runtime contains a stale shadow copy at ${shadowedRootFile}`);
+    } catch {}
   }
 
   const nodeCheck = spawnSync(process.execPath, ['--check', path.join(pluginDir, 'plugin/index.js')], { encoding: 'utf8' });

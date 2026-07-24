@@ -8,6 +8,11 @@
     "description": "包含全部《绝地潜兵 2》战略配备的一键 Stream Dock 宏。",
     "category": "绝地潜兵 2 Dock（简体中文）"
   },
+  "inputDelay": {
+    "name": "按键间隔",
+    "tooltip": "临时调整方向按键之间的输入间隔。",
+    "displayLabel": "按键间隔"
+  },
   "categories": {
     "Orbital Strikes": "轨道攻击",
     "Eagle Strikes": "“飞鹰”攻击",

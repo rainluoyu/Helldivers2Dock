@@ -6,10 +6,13 @@ const workflowDirectory = path.resolve('.github/workflows');
 const files = (await readdir(workflowDirectory)).filter((file) => /\.ya?ml$/i.test(file));
 const expected = new Map([
   ['ci.yml', null],
-  ['release-en.yml', 'en-v*'],
-  ['release-zh-cn.yml', 'zh-cn-v*']
+  ['release.yml', 'v*']
 ]);
 const errors = [];
+
+for (const file of files) {
+  if (!expected.has(file)) errors.push(`Unexpected workflow ${file}`);
+}
 
 for (const [file, tagPattern] of expected) {
   if (!files.includes(file)) {
@@ -29,6 +32,13 @@ for (const [file, tagPattern] of expected) {
     if (!tags.includes(tagPattern)) errors.push(`${file} must trigger on ${tagPattern}`);
     if (workflow.permissions?.contents !== 'write') errors.push(`${file} must grant only the required contents write permission`);
     if (!workflow.jobs.release) errors.push(`${file} is missing its release job`);
+    const releaseSteps = workflow.jobs.release?.steps ?? [];
+    const commands = releaseSteps.map((step) => step.run ?? '').join('\n');
+    if (!commands.includes('npm run build')) errors.push(`${file} must build all language editions together`);
+    if (!commands.includes('npm run package')) errors.push(`${file} must package all language editions together`);
+    for (const asset of ['Helldivers2Dock-en-', 'Helldivers2Dock-zh-CN-']) {
+      if (!commands.includes(asset)) errors.push(`${file} must publish the ${asset} package`);
+    }
   } else if (workflow.permissions?.contents !== 'read') {
     errors.push(`${file} CI permissions must be read-only`);
   }

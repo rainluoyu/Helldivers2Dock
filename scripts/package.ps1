@@ -14,6 +14,7 @@ function Test-ReleaseArchive {
         $entries = @($zip.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
         $required = @(
             "$RootDirectory/manifest.json",
+            "$RootDirectory/config.ini",
             "$RootDirectory/plugin/index.js",
             "$RootDirectory/plugin/bin/StratagemInput.exe",
             "$RootDirectory/data/stratagems.json",
@@ -25,7 +26,9 @@ function Test-ReleaseArchive {
         }
         $forbidden = $entries | Where-Object {
             $_ -match '(^|/)(src|native|scripts|i18n|node_modules|wiki-original)(/|$)' -or
-            $_ -match '\.SDProfile$|(^|/)README(?:\.|$)|\.git'
+            $_ -match '\.SDProfile$|(^|/)README(?:\.|$)|\.git' -or
+            $_ -eq "$RootDirectory/plugin/config.ini" -or
+            $_ -eq "$RootDirectory/plugin/stratagems.json"
         }
         if ($forbidden) { throw "Release archive contains non-runtime files: $($forbidden -join ', ')" }
         $outsideRoot = $entries | Where-Object { $_ -notlike "$RootDirectory/*" }
@@ -61,7 +64,7 @@ foreach ($package in $packages) {
 
     try {
         New-Item -ItemType Directory -Force -Path $stagedPlugin | Out-Null
-        foreach ($file in @('manifest.json', 'en.json', 'zh_CN.json')) {
+        foreach ($file in @('manifest.json', 'en.json', 'zh_CN.json', 'config.ini')) {
             Copy-Item -LiteralPath (Join-Path $plugin $file) -Destination (Join-Path $stagedPlugin $file)
         }
         Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $stagedPlugin 'LICENSE')

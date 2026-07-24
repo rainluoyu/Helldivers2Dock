@@ -2,40 +2,52 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Helldivers2Dock is a Windows Stream Dock plugin that provides one-button macros for every catalogued *Helldivers 2* stratagem, including support weapons, backpacks, sentries, vehicles, reinforcement, resupply, and mission-only stratagems.
+Helldivers2Dock is a Windows Stream Dock plugin designed specifically for Mirabox devices. It provides one-button macros for every catalogued *Helldivers 2* stratagem, including support weapons, backpacks, sentries, vehicles, reinforcement, resupply, and mission-only stratagems.
 
-The implementation targets the Mirabox/Ajazz Stream Dock Node.js plugin runtime.
+The implementation targets Mirabox Stream Dock hardware and the Mirabox Stream Dock Node.js plugin runtime.
 
 ## Features
 
 - 108 independently draggable stratagem actions.
-- English and Simplified Chinese editions with separate plugin IDs, packages, and releases.
+- Permanent input-delay configuration in the plugin-root `config.ini`, defaulting to the historical `45 ms`.
+- A Mirabox knob action that temporarily adjusts the delay from `15–250 ms` in `5 ms` steps and renders the label and current value as an image on the knob display.
+- English and Simplified Chinese editions with separate plugin IDs and packages, published together in one release.
 - Default `Left Ctrl` + `W/A/S/D` stratagem input through a small Win32 `SendInput` helper.
+
+## Supported devices
+
+This plugin is designed for Mirabox Stream Dock devices used with the official Stream Dock software. Key actions require a Mirabox device with programmable keys; temporary input-delay control requires a model with a knob and knob display. Devices or software from other vendors may implement a compatible protocol, but they are not the primary target and are not guaranteed to work.
 
 ## Editions
 
 | Edition | Plugin directory | Release tag |
 |---|---|---|
-| English | `com.n4pro.helldivers2dock.sdPlugin` | `en-vX.Y.Z` |
-| Simplified Chinese | `com.n4pro.helldivers2dock.zh-cn.sdPlugin` | `zh-cn-vX.Y.Z` |
+| English | `com.n4pro.helldivers2dock.sdPlugin` | `vX.Y.Z` |
+| Simplified Chinese | `com.n4pro.helldivers2dock.zh-cn.sdPlugin` | `vX.Y.Z` |
 
-Both editions may be installed at the same time. They use different plugin and action UUIDs but share the same icons, sequences, and runtime.
+Both packages are attached to the same version release and may be installed at the same time. They use different plugin and action UUIDs but share the same icons, sequences, and runtime.
 
 ## Requirements
 
 - Windows 10 or later.
-- Stream Dock 3.10.188.226 or later with the Node 20 plugin runtime.
+- A Mirabox Stream Dock device running Stream Dock 3.10.188.226 or later with the Node 20 plugin runtime.
 - Default in-game stratagem controls: hold left `Ctrl`, then enter directions using `W/A/S/D`.
 - Stream Dock and the game must run at the same Windows integrity level.
 
 ## Installation
 
-1. Download the release archive for the desired language.
+1. Open the desired version release and download its English or Simplified Chinese archive.
 2. Extract its `.sdPlugin` directory into `%APPDATA%\HotSpot\StreamDock\plugins\`.
 3. Restart Stream Dock.
 4. Drag actions from **Helldivers 2 Dock (English)** or **绝地潜兵 2 Dock（简体中文）** onto the device.
 
 Release archives contain only installable runtime files. Source code, build scripts, private profiles, original wiki downloads, and the other language edition are not included in an edition package.
+
+### Adjusting the input delay
+
+For a permanent adjustment, edit `config.ini` in the installed plugin root, change `KeyIntervalMs` under `[Input]` to a value from `15` through `250`, and restart Stream Dock. The default of `45` preserves the previous behavior; out-of-range values are clamped.
+
+For a temporary adjustment, drag the **Input Delay** action onto a Mirabox knob. Each detent changes the delay by `5 ms`, and a dynamically rendered image on the knob display shows the label and current value. The initial value comes from `config.ini`, remains in memory only, and returns to the configuration value after Stream Dock restarts.
 
 ## Build from source
 
@@ -72,12 +84,12 @@ All edition metadata and localized labels live in [`i18n/`](i18n):
 
 ## Releases
 
-GitHub Actions builds and publishes each language independently:
+GitHub Actions publishes all language editions together:
 
-- Push `en-v1.2.0` to publish only `Helldivers2Dock-en-1.2.0.zip`.
-- Push `zh-cn-v1.2.0` to publish only `Helldivers2Dock-zh-CN-1.2.0.zip`.
+- Push `v1.2.0` to create one `Helldivers2Dock 1.2.0` release.
+- The release contains both `Helldivers2Dock-en-1.2.0.zip` and `Helldivers2Dock-zh-CN-1.2.0.zip`.
 
-Each release workflow derives the manifest and archive version from its tag, performs a clean build, validates plugin registration, checks archive contents, and uploads exactly one language package.
+The release workflow derives the version of every language manifest and archive from the same tag, performs one clean all-language build, validates plugin registration and archive contents, and uploads every language package to the same GitHub Release.
 
 ## Project layout
 
@@ -88,7 +100,7 @@ Each release workflow derives the manifest and archive version from its tag, per
 - `assets/` — tracked runtime icons, original wiki-source icons, and plugin icon.
 - `data/stratagems.json` — tracked canonical stratagem catalog.
 - `build/*.sdPlugin/` — generated installable plugin trees; ignored by Git.
-- `.github/workflows/` — CI and independent language release workflows.
+- `.github/workflows/` — CI and the unified all-language release workflow.
 
 ## Copyright and attribution
 

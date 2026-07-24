@@ -8,6 +8,11 @@
     "description": "One-button Stream Dock macros for every Helldivers 2 stratagem.",
     "category": "Helldivers 2 Dock (English)"
   },
+  "inputDelay": {
+    "name": "Input Delay",
+    "tooltip": "Temporarily adjust the delay between directional key inputs.",
+    "displayLabel": "Input delay"
+  },
   "categories": {
     "Orbital Strikes": "Orbital Strikes",
     "Eagle Strikes": "Eagle Strikes",

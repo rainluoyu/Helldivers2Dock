@@ -24,12 +24,14 @@ for (const edition of editions) {
   await Promise.all([
     mkdir(path.join(edition.directory, 'data'), { recursive: true }),
     cp(path.resolve('assets/images'), path.join(edition.directory, 'images'), { recursive: true, force: true }),
-    cp(path.resolve('assets/static'), path.join(edition.directory, 'static'), { recursive: true, force: true })
+    cp(path.resolve('assets/static'), path.join(edition.directory, 'static'), { recursive: true, force: true }),
+    cp(path.resolve('config.ini'), path.join(edition.directory, 'config.ini'), { force: true })
   ]);
 
   const catalog = structuredClone(baseCatalog);
   catalog.pluginId = locale.pluginId;
   catalog.language = locale.locale;
+  catalog.inputDelay = locale.inputDelay;
   for (const item of catalog.stratagems) {
     item.englishName = item.name;
     item.name = locale.stratagems[item.slug] ?? item.name;
@@ -57,17 +59,35 @@ console.log(`Prepared ${prepared.join(', ')} with ${baseCatalog.stratagems.lengt
 
 function createManifest(locale, catalog, version) {
   return {
-    Actions: catalog.stratagems.map((item) => ({
-      Icon: item.icon,
-      Name: item.name,
-      DisableAutomaticStates: true,
-      States: [{ Image: item.icon, TitleAlignment: 'bottom', FontSize: '8' }],
-      Controllers: ['Keypad'],
-      UserTitleEnabled: true,
-      SupportedInMultiActions: true,
-      Tooltip: `${item.name} — ${item.arrows}`,
-      UUID: item.uuid
-    })),
+    Actions: [
+      ...catalog.stratagems.map((item) => ({
+        Icon: item.icon,
+        Name: item.name,
+        DisableAutomaticStates: true,
+        States: [{ Image: item.icon, TitleAlignment: 'bottom', FontSize: '8' }],
+        Controllers: ['Keypad'],
+        UserTitleEnabled: true,
+        SupportedInMultiActions: true,
+        Tooltip: `${item.name} — ${item.arrows}`,
+        UUID: item.uuid
+      })),
+      {
+        Icon: 'static/plugin-icon.png',
+        Name: locale.inputDelay.name,
+        DisableAutomaticStates: true,
+        States: [{
+          Image: 'static/plugin-icon.png',
+          TitleAlignment: 'center',
+          FontSize: '11',
+          ShowTitle: false
+        }],
+        Controllers: ['Knob'],
+        UserTitleEnabled: false,
+        SupportedInMultiActions: false,
+        Tooltip: locale.inputDelay.tooltip,
+        UUID: `${locale.pluginId}.input-delay`
+      }
+    ],
     UUID: locale.pluginId,
     SDKVersion: 1,
     Author: 'N4Pro Community',
@@ -94,11 +114,15 @@ function createStreamDockLocale(manifest, catalog) {
   for (const item of catalog.stratagems) {
     localized[item.uuid] = { Name: item.name, Tooltip: `${item.name} — ${item.arrows}` };
   }
+  localized[`${catalog.pluginId}.input-delay`] = {
+    Name: catalog.inputDelay.name,
+    Tooltip: catalog.inputDelay.tooltip
+  };
   return localized;
 }
 
 function validateLocale(locale, slugs, file) {
-  for (const field of ['locale', 'pluginId', 'version', 'plugin', 'categories', 'stratagems']) {
+  for (const field of ['locale', 'pluginId', 'version', 'plugin', 'inputDelay', 'categories', 'stratagems']) {
     if (locale[field] === undefined) throw new Error(`${file} is missing '${field}'.`);
   }
   const translated = Object.keys(locale.stratagems);

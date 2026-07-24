@@ -1,9 +1,9 @@
-name: Release English edition
+name: Release all language editions
 
 on:
   push:
     tags:
-      - "en-v*"
+      - "v*"
 
 permissions:
   contents: write
@@ -28,12 +28,11 @@ jobs:
       - name: Resolve release version
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME -replace '^en-v', ''
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
           if ($version -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') {
-            throw "Tag must use en-vX.Y.Z: $env:GITHUB_REF_NAME"
+            throw "Tag must use vX.Y.Z: $env:GITHUB_REF_NAME"
           }
           "PLUGIN_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "RELEASE_ASSET=dist/Helldivers2Dock-en-$version.zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Ensure MinGW compiler is available
         shell: pwsh
@@ -46,19 +45,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and test English edition
-        run: npm run build:en
+      - name: Build and test all language editions
+        run: npm run build
 
-      - name: Package English edition
-        run: npm run package:en
+      - name: Package all language editions
+        run: npm run package
 
-      - name: Publish English release
+      - name: Publish one release with all language packages
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $assets = @(
+            "dist/Helldivers2Dock-en-$env:PLUGIN_VERSION.zip",
+            "dist/Helldivers2Dock-zh-CN-$env:PLUGIN_VERSION.zip"
+          )
+          foreach ($asset in $assets) {
+            if (-not (Test-Path -LiteralPath $asset)) {
+              throw "Missing release asset: $asset"
+            }
+          }
           if (gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY 2>$null) {
-            gh release upload $env:GITHUB_REF_NAME $env:RELEASE_ASSET --clobber --repo $env:GITHUB_REPOSITORY
+            gh release upload $env:GITHUB_REF_NAME @assets --clobber --repo $env:GITHUB_REPOSITORY
           } else {
-            gh release create $env:GITHUB_REF_NAME $env:RELEASE_ASSET --repo $env:GITHUB_REPOSITORY --title "Helldivers2Dock English $env:PLUGIN_VERSION" --generate-notes
+            gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --title "Helldivers2Dock $env:PLUGIN_VERSION" --generate-notes
           }
