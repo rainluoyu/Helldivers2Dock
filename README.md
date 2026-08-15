@@ -9,14 +9,14 @@ The implementation targets Mirabox Stream Dock hardware and the Mirabox Stream D
 ## Features
 
 - 108 independently draggable stratagem actions.
-- Permanent input-delay configuration in the plugin-root `config.ini`, defaulting to the historical `45 ms`.
-- A Mirabox knob action that temporarily adjusts the delay from `15–250 ms` in `5 ms` steps and renders the label and current value as an image on the knob display.
+- Separate pre-input delay (`45 ms`) and key interval (`8 ms`) configuration in the plugin-root `config.ini`. The pre-input delay is also retained between directional inputs.
+- A Mirabox knob action that temporarily adjusts the key interval from `1–250 ms` in `1 ms` steps and renders the label and current value as an image on the knob display.
 - English and Simplified Chinese editions with separate plugin IDs and packages, published together in one release.
 - Default `Left Ctrl` + `W/A/S/D` stratagem input through a small Win32 `SendInput` helper.
 
 ## Supported devices
 
-This plugin is designed for Mirabox Stream Dock devices used with the official Stream Dock software. Key actions require a Mirabox device with programmable keys; temporary input-delay control requires a model with a knob and knob display. Devices or software from other vendors may implement a compatible protocol, but they are not the primary target and are not guaranteed to work.
+This plugin is designed for Mirabox Stream Dock devices used with the official Stream Dock software. Key actions require a Mirabox device with programmable keys; temporary key-interval control requires a model with a knob and knob display. Devices or software from other vendors may implement a compatible protocol, but they are not the primary target and are not guaranteed to work.
 
 ## Editions
 
@@ -45,9 +45,9 @@ Release archives contain only installable runtime files. Source code, build scri
 
 ### Adjusting the input delay
 
-For a permanent adjustment, edit `config.ini` in the installed plugin root, change `KeyIntervalMs` under `[Input]` to a value from `15` through `250`, and restart Stream Dock. The default of `45` preserves the previous behavior; out-of-range values are clamped.
+For a permanent adjustment, edit `config.ini` in the installed plugin root, set `PreInputDelayMs` under `[Input]` to `15–250` and `KeyIntervalMs` to `1–250`, then restart Stream Dock. Defaults are `45` and `8`; out-of-range values are clamped.
 
-For a temporary adjustment, drag the **Input Delay** action onto a Mirabox knob. Each detent changes the delay by `5 ms`, and a dynamically rendered image on the knob display shows the label and current value. The initial value comes from `config.ini`, remains in memory only, and returns to the configuration value after Stream Dock restarts.
+For a temporary adjustment, drag the **Key Interval** action onto a Mirabox knob. Each detent changes the interval by `1 ms`, and a dynamically rendered image on the knob display shows the label and current value. The initial value comes from `config.ini`, remains in memory only, and returns to the configuration value after Stream Dock restarts.
 
 ## Build from source
 

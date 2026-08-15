@@ -118,7 +118,7 @@ const catalog = {
   sourceRevisionTimestamp: revision.timestamp,
   retrievedAt,
   count: stratagems.length,
-  controls: { modifier: 'Left Ctrl', directions: 'W/A/S/D', inputDelayMs: 45 },
+  controls: { modifier: 'Left Ctrl', directions: 'W/A/S/D', preInputDelayMs: 45, keyIntervalMs: 8 },
   stratagems
 };
 await writeJson(path.join(DATA_DIR, 'stratagems.json'), catalog);

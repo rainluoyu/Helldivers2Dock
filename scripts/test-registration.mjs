@@ -7,12 +7,12 @@ const variants = [
   {
     locale: 'en',
     entry: path.resolve('build/com.n4pro.helldivers2dock.sdPlugin/plugin/index.js'),
-    inputDelayAction: 'com.n4pro.helldivers2dock.input-delay'
+     keyIntervalAction: 'com.n4pro.helldivers2dock.key-interval'
   },
   {
     locale: 'zh-CN',
     entry: path.resolve('build/com.n4pro.helldivers2dock.zh-cn.sdPlugin/plugin/index.js'),
-    inputDelayAction: 'com.n4pro.helldivers2dock.zh-cn.input-delay'
+     keyIntervalAction: 'com.n4pro.helldivers2dock.zh-cn.key-interval'
   }
 ];
 const requestedLocale = getOption('--locale') ?? 'all';
@@ -22,7 +22,7 @@ if (!selected.length) throw new Error(`Unknown locale '${requestedLocale}'. Expe
 for (const [index, variant] of selected.entries()) {
   await testRegistration(variant, `registration-test-${index}`);
 }
-console.log(`${selected.map((variant) => variant.locale).join(', ')} registration and input-delay knob tests passed.`);
+console.log(`${selected.map((variant) => variant.locale).join(', ')} registration and key-interval knob tests passed.`);
 
 async function testRegistration(variant, uuid) {
   const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
@@ -60,25 +60,25 @@ async function testRegistration(variant, uuid) {
     throw new Error(`Unexpected registration payload: ${JSON.stringify(registration.message)}`);
   }
 
-  const context = `${variant.locale}-input-delay`;
-  const configuredDelay = readConfiguredDelay(variant.entry);
+   const context = `${variant.locale}-key-interval`;
+   const configuredInterval = readConfiguredInterval(variant.entry);
   const firstImage = receiveJson(registration.socket);
   registration.socket.send(JSON.stringify({
-    action: variant.inputDelayAction,
+     action: variant.keyIntervalAction,
     event: 'willAppear',
     context,
     payload: { controller: 'Knob' }
   }));
-  assertInputDelayImage(await firstImage, context, configuredDelay);
+   assertTimingImage(await firstImage, context, configuredInterval);
 
   const rotatedImage = receiveJson(registration.socket);
   registration.socket.send(JSON.stringify({
-    action: variant.inputDelayAction,
+     action: variant.keyIntervalAction,
     event: 'dialRotate',
     context,
     payload: { controller: 'Knob', ticks: 2, pressed: false }
   }));
-  assertInputDelayImage(await rotatedImage, context, Math.min(250, configuredDelay + 10));
+   assertTimingImage(await rotatedImage, context, Math.min(250, configuredInterval + 2));
 
   registration.socket.close();
   await new Promise((resolve) => server.close(resolve));
@@ -86,11 +86,11 @@ async function testRegistration(variant, uuid) {
   clearTimeout(timeout);
 }
 
-function readConfiguredDelay(entry) {
+function readConfiguredInterval(entry) {
   const configPath = path.resolve(path.dirname(entry), '..', 'config.ini');
   const ini = readFileSync(configPath, 'utf8');
-  const value = Number(ini.match(/^\s*KeyIntervalMs\s*=\s*(\d+)/imu)?.[1] ?? 45);
-  return Math.min(250, Math.max(15, Math.round(value)));
+   const value = Number(ini.match(/^\s*KeyIntervalMs\s*=\s*(\d+)/imu)?.[1] ?? 8);
+   return Math.min(250, Math.max(1, Math.round(value)));
 }
 
 function receiveJson(socket) {
@@ -102,17 +102,17 @@ function receiveJson(socket) {
   });
 }
 
-function assertInputDelayImage(message, context, expectedDelay) {
+function assertTimingImage(message, context, expectedDelay) {
   if (message.event !== 'setImage' || message.context !== context || message.payload?.target !== 0) {
     throw new Error(`Unexpected knob image payload: ${JSON.stringify(message)}`);
   }
   const prefix = 'data:image/svg+xml;base64,';
   if (!message.payload.image?.startsWith(prefix)) {
-    throw new Error('Input-delay knob did not receive a Base64 SVG image');
+     throw new Error('Key-interval knob did not receive a Base64 SVG image');
   }
   const svg = Buffer.from(message.payload.image.slice(prefix.length), 'base64').toString('utf8');
   if (!svg.includes(`>${expectedDelay}</text>`) || !svg.includes('>ms</text>')) {
-    throw new Error(`Input-delay image does not show ${expectedDelay} ms`);
+     throw new Error(`Key-interval image does not show ${expectedDelay} ms`);
   }
 }
 

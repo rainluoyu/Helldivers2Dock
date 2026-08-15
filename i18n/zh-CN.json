@@ -2,15 +2,15 @@
   "locale": "zh-CN",
   "edition": "简体中文",
   "pluginId": "com.n4pro.helldivers2dock.zh-cn",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "plugin": {
     "name": "绝地潜兵 2 Dock（简体中文）",
     "description": "包含全部《绝地潜兵 2》战略配备的一键 Stream Dock 宏。",
     "category": "绝地潜兵 2 Dock（简体中文）"
   },
-  "inputDelay": {
+  "keyInterval": {
     "name": "按键间隔",
-    "tooltip": "临时调整方向按键之间的输入间隔。",
+    "tooltip": "临时调整方向按键的按下与松开间隔。",
     "displayLabel": "按键间隔"
   },
   "categories": {

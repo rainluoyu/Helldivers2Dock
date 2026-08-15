@@ -30,16 +30,16 @@ for (const variant of selected) {
     errors.push(`${variant.locale}: Stream Dock locale files do not preserve the edition language`);
   }
   if (manifest.Actions.length !== catalog.stratagems.length + 1) {
-    errors.push(`${variant.locale}: manifest has ${manifest.Actions.length} actions; expected ${catalog.stratagems.length} stratagems plus the input-delay knob`);
+     errors.push(`${variant.locale}: manifest has ${manifest.Actions.length} actions; expected ${catalog.stratagems.length} stratagems plus the key-interval knob`);
   }
   if (catalog.stratagems.length < 100) errors.push(`${variant.locale}: catalog only has ${catalog.stratagems.length} items`);
 
   const actionUuids = new Set(manifest.Actions.map((action) => action.UUID));
   if (actionUuids.size !== manifest.Actions.length) errors.push(`${variant.locale}: duplicate action UUIDs`);
-  const inputDelayAction = manifest.Actions.find((action) => action.UUID === `${locale.pluginId}.input-delay`);
-  if (!inputDelayAction) errors.push(`${variant.locale}: input-delay knob action is missing from manifest`);
-  else if (inputDelayAction.Controllers.length !== 1 || inputDelayAction.Controllers[0] !== 'Knob') {
-    errors.push(`${variant.locale}: input-delay action must target the Mirabox Knob controller`);
+   const keyIntervalAction = manifest.Actions.find((action) => action.UUID === `${locale.pluginId}.key-interval`);
+   if (!keyIntervalAction) errors.push(`${variant.locale}: key-interval knob action is missing from manifest`);
+   else if (keyIntervalAction.Controllers.length !== 1 || keyIntervalAction.Controllers[0] !== 'Knob') {
+     errors.push(`${variant.locale}: key-interval action must target the Mirabox Knob controller`);
   }
 
   for (const item of catalog.stratagems) {

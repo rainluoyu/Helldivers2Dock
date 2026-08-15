@@ -36,9 +36,12 @@ int main(int argc, char** argv) {
     }
 
     const std::string code = argv[1];
-    const DWORD delayMs = argc >= 3
+    const DWORD preInputDelayMs = argc >= 3
         ? static_cast<DWORD>(std::clamp(std::atoi(argv[2]), 15, 250))
         : 45;
+    const DWORD keyIntervalMs = argc >= 4
+        ? static_cast<DWORD>(std::clamp(std::atoi(argv[3]), 1, 250))
+        : 8;
 
     for (char direction : code) {
         if (directionScanCode(direction) == 0) {
@@ -49,15 +52,15 @@ int main(int argc, char** argv) {
     if (!sendScanCode(kCtrlScanCode, false)) {
         return 4;
     }
-    Sleep(delayMs);
+    Sleep(preInputDelayMs);
 
     bool success = true;
     for (char direction : code) {
         const WORD scanCode = directionScanCode(direction);
         success = sendScanCode(scanCode, false) && success;
-        Sleep(8);
+        Sleep(keyIntervalMs);
         success = sendScanCode(scanCode, true) && success;
-        Sleep(delayMs);
+        Sleep(preInputDelayMs);
     }
 
     success = sendScanCode(kCtrlScanCode, true) && success;

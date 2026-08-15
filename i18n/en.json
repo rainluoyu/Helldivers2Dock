@@ -2,16 +2,16 @@
   "locale": "en",
   "edition": "English",
   "pluginId": "com.n4pro.helldivers2dock",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "plugin": {
     "name": "Helldivers 2 Dock (English)",
     "description": "One-button Stream Dock macros for every Helldivers 2 stratagem.",
     "category": "Helldivers 2 Dock (English)"
   },
-  "inputDelay": {
-    "name": "Input Delay",
-    "tooltip": "Temporarily adjust the delay between directional key inputs.",
-    "displayLabel": "Input delay"
+  "keyInterval": {
+    "name": "Key Interval",
+    "tooltip": "Temporarily adjust the interval between directional key press and release.",
+    "displayLabel": "Key interval"
   },
   "categories": {
     "Orbital Strikes": "Orbital Strikes",

@@ -7,7 +7,8 @@
   "controls": {
     "modifier": "Left Ctrl",
     "directions": "W/A/S/D",
-    "inputDelayMs": 45
+    "preInputDelayMs": 45,
+    "keyIntervalMs": 8
   },
   "stratagems": [
     {

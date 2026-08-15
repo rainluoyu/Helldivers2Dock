@@ -10,19 +10,23 @@ const PLUGIN_UUID = process.argv[5];
 const REGISTER_EVENT = process.argv[7];
 const PLUGIN_ROOT = path.resolve(path.dirname(process.argv[1]), '..');
 const catalog = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, 'data', 'stratagems.json'), 'utf8'));
-const DEFAULT_INPUT_DELAY_MS = 45;
-const MIN_INPUT_DELAY_MS = 15;
-const MAX_INPUT_DELAY_MS = 250;
-const INPUT_DELAY_STEP_MS = 5;
+const DEFAULT_PRE_INPUT_DELAY_MS = 45;
+const DEFAULT_KEY_INTERVAL_MS = 8;
+const MIN_PRE_INPUT_DELAY_MS = 15;
+const MAX_PRE_INPUT_DELAY_MS = 250;
+const MIN_KEY_INTERVAL_MS = 1;
+const MAX_KEY_INTERVAL_MS = 250;
+const KEY_INTERVAL_STEP_MS = 1;
 const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config.ini');
 const HELPER_PATH = path.join(__dirname, 'bin', 'StratagemInput.exe');
 const ACTION_PREFIX = `${catalog.pluginId}.`;
-const INPUT_DELAY_ACTION = `${ACTION_PREFIX}input-delay`;
+const KEY_INTERVAL_ACTION = `${ACTION_PREFIX}key-interval`;
 const stratagems = new Map(catalog.stratagems.map((item) => [item.uuid, item]));
 
 let queue = Promise.resolve();
-let inputDelayMs = readInputDelay();
-const inputDelayContexts = new Set();
+const inputTiming = readInputTiming();
+let keyIntervalMs = inputTiming.keyIntervalMs;
+const keyIntervalContexts = new Set();
 const socket = new WebSocket(`ws://127.0.0.1:${PORT}`);
 
 socket.on('open', () => {
@@ -37,8 +41,8 @@ socket.on('message', (raw) => {
     return;
   }
 
-  if (message.action === INPUT_DELAY_ACTION) {
-    handleInputDelayAction(message);
+  if (message.action === KEY_INTERVAL_ACTION) {
+    handleKeyIntervalAction(message);
     return;
   }
 
@@ -53,7 +57,7 @@ socket.on('message', (raw) => {
   }
 
   queue = queue
-    .then(() => runMacro(stratagem.code))
+      .then(() => runMacro(stratagem.code))
     .then(() => showFeedback('showOk', message.context))
     .catch(() => showFeedback('showAlert', message.context));
 });
@@ -63,7 +67,7 @@ socket.on('close', () => process.exit(0));
 
 function runMacro(code) {
   return new Promise((resolve, reject) => {
-    const child = spawn(HELPER_PATH, [code, String(inputDelayMs)], {
+    const child = spawn(HELPER_PATH, [code, String(inputTiming.preInputDelayMs), String(keyIntervalMs)], {
       windowsHide: true,
       stdio: 'ignore'
     });
@@ -72,14 +76,14 @@ function runMacro(code) {
   });
 }
 
-function handleInputDelayAction(message) {
+function handleKeyIntervalAction(message) {
   if (message.event === 'willAppear') {
-    inputDelayContexts.add(message.context);
-    showInputDelay(message.context);
+    keyIntervalContexts.add(message.context);
+    showKeyInterval(message.context);
     return;
   }
   if (message.event === 'willDisappear') {
-    inputDelayContexts.delete(message.context);
+    keyIntervalContexts.delete(message.context);
     return;
   }
   if (message.event !== 'dialRotate') {
@@ -90,15 +94,15 @@ function handleInputDelayAction(message) {
   if (!Number.isInteger(ticks) || ticks === 0) {
     return;
   }
-  inputDelayMs = clamp(inputDelayMs + ticks * INPUT_DELAY_STEP_MS, MIN_INPUT_DELAY_MS, MAX_INPUT_DELAY_MS);
-  for (const context of inputDelayContexts) {
-    showInputDelay(context);
+  keyIntervalMs = clamp(keyIntervalMs + ticks * KEY_INTERVAL_STEP_MS, MIN_KEY_INTERVAL_MS, MAX_KEY_INTERVAL_MS);
+  for (const context of keyIntervalContexts) {
+    showKeyInterval(context);
   }
 }
 
-function showInputDelay(context) {
-  const label = catalog.inputDelay?.displayLabel ?? 'Input delay';
-  const image = createInputDelayImage(label, inputDelayMs);
+function showKeyInterval(context) {
+  const label = catalog.keyInterval?.displayLabel ?? 'Key interval';
+  const image = createTimingImage(label, keyIntervalMs);
   sendSocketMessage({
     event: 'setImage',
     context,
@@ -109,7 +113,7 @@ function showInputDelay(context) {
   });
 }
 
-function createInputDelayImage(label, delayMs) {
+function createTimingImage(label, delayMs) {
   const safeLabel = escapeXml(label);
   const svg = [
     '<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">',
@@ -143,7 +147,9 @@ function sendSocketMessage(message) {
   }
 }
 
-function readInputDelay() {
+function readInputTiming() {
+  let preInputDelayMs = DEFAULT_PRE_INPUT_DELAY_MS;
+  let keyIntervalMs = DEFAULT_KEY_INTERVAL_MS;
   try {
     const ini = fs.readFileSync(CONFIG_PATH, 'utf8');
     let section = '';
@@ -157,16 +163,17 @@ function readInputDelay() {
       }
       if (section !== 'input') continue;
       const propertyMatch = line.match(/^([^=]+)=(.*)$/u);
-      if (!propertyMatch || propertyMatch[1].trim().toLowerCase() !== 'keyintervalms') continue;
+      if (!propertyMatch) continue;
       const configured = Number(propertyMatch[2].split(/[;#]/u, 1)[0].trim());
-      if (Number.isFinite(configured)) {
-        return clamp(Math.round(configured), MIN_INPUT_DELAY_MS, MAX_INPUT_DELAY_MS);
-      }
+      if (!Number.isFinite(configured)) continue;
+      const property = propertyMatch[1].trim().toLowerCase();
+      if (property === 'preinputdelayms') preInputDelayMs = clamp(Math.round(configured), MIN_PRE_INPUT_DELAY_MS, MAX_PRE_INPUT_DELAY_MS);
+      if (property === 'keyintervalms') keyIntervalMs = clamp(Math.round(configured), MIN_KEY_INTERVAL_MS, MAX_KEY_INTERVAL_MS);
     }
   } catch {
-    // Missing or unreadable configuration keeps the historical hard-coded value.
+    // Missing or unreadable configuration keeps the default timing values.
   }
-  return DEFAULT_INPUT_DELAY_MS;
+  return { preInputDelayMs, keyIntervalMs };
 }
 
 function clamp(value, minimum, maximum) {
