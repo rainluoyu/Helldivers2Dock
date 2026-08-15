@@ -86,8 +86,8 @@ All edition metadata and localized labels live in [`i18n/`](i18n):
 
 GitHub Actions publishes all language editions together:
 
-- Push `v1.2.0` to create one `Helldivers2Dock 1.2.0` release.
-- The release contains both `Helldivers2Dock-en-1.2.0.zip` and `Helldivers2Dock-zh-CN-1.2.0.zip`.
+- Push `v1.3.0` to create one `Helldivers2Dock 1.3.0` release.
+- The release contains both `Helldivers2Dock-en-1.3.0.zip` and `Helldivers2Dock-zh-CN-1.3.0.zip`.
 
 The release workflow derives the version of every language manifest and archive from the same tag, performs one clean all-language build, validates plugin registration and archive contents, and uploads every language package to the same GitHub Release.
 

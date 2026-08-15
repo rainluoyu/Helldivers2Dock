@@ -86,8 +86,8 @@ npm run package:zh-CN
 
 GitHub Actions 会在一次版本更新中统一发布全部语言：
 
-- 推送 `v1.2.0`，创建一个名为 `Helldivers2Dock 1.2.0` 的 Release。
-- 同一个 Release 会同时包含 `Helldivers2Dock-en-1.2.0.zip` 和 `Helldivers2Dock-zh-CN-1.2.0.zip`。
+- 推送 `v1.3.0`，创建一个名为 `Helldivers2Dock 1.3.0` 的 Release。
+- 同一个 Release 会同时包含 `Helldivers2Dock-en-1.3.0.zip` 和 `Helldivers2Dock-zh-CN-1.3.0.zip`。
 
 统一发布工作流会从同一个标签设置所有语言 manifest 和压缩包的版本，执行一次全语言干净构建、插件注册测试及压缩包内容检查，然后把全部语言安装包上传到同一个 GitHub Release。
 

@@ -2,7 +2,7 @@
   "locale": "zh-CN",
   "edition": "简体中文",
   "pluginId": "com.n4pro.helldivers2dock.zh-cn",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "plugin": {
     "name": "绝地潜兵 2 Dock（简体中文）",
     "description": "包含全部《绝地潜兵 2》战略配备的一键 Stream Dock 宏。",

@@ -18,7 +18,7 @@ body:
     id: versions
     attributes:
       label: Plugin and Stream Dock versions
-      placeholder: "Plugin 1.2.0; Stream Dock 3.10.188.226"
+      placeholder: "Plugin 1.3.0; Stream Dock 3.10.188.226"
     validations:
       required: true
   - type: textarea
