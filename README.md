@@ -10,13 +10,13 @@ The implementation targets Mirabox Stream Dock hardware and the Mirabox Stream D
 
 - 108 independently draggable stratagem actions.
 - Separate pre-input delay (`45 ms`) and key interval (`8 ms`) configuration in the plugin-root `config.ini`. The pre-input delay is also retained between directional inputs.
-- A Mirabox knob action that temporarily adjusts the key interval from `1–250 ms` in `1 ms` steps and renders the label and current value as an image on the knob display.
+- Separate Mirabox knob actions temporarily adjust the pre-input delay (`15–250 ms`, `5 ms` steps) and key interval (`1–250 ms`, `1 ms` steps), each with its own displayed value.
 - English and Simplified Chinese editions with separate plugin IDs and packages, published together in one release.
 - Default `Left Ctrl` + `W/A/S/D` stratagem input through a small Win32 `SendInput` helper.
 
 ## Supported devices
 
-This plugin is designed for Mirabox Stream Dock devices used with the official Stream Dock software. Key actions require a Mirabox device with programmable keys; temporary key-interval control requires a model with a knob and knob display. Devices or software from other vendors may implement a compatible protocol, but they are not the primary target and are not guaranteed to work.
+This plugin is designed for Mirabox Stream Dock devices used with the official Stream Dock software. Key actions require a Mirabox device with programmable keys; temporary timing control requires a model with a knob and knob display. Devices or software from other vendors may implement a compatible protocol, but they are not the primary target and are not guaranteed to work.
 
 ## Editions
 
@@ -47,7 +47,7 @@ Release archives contain only installable runtime files. Source code, build scri
 
 For a permanent adjustment, edit `config.ini` in the installed plugin root, set `PreInputDelayMs` under `[Input]` to `15–250` and `KeyIntervalMs` to `1–250`, then restart Stream Dock. Defaults are `45` and `8`; out-of-range values are clamped.
 
-For a temporary adjustment, drag the **Key Interval** action onto a Mirabox knob. Each detent changes the interval by `1 ms`, and a dynamically rendered image on the knob display shows the label and current value. The initial value comes from `config.ini`, remains in memory only, and returns to the configuration value after Stream Dock restarts.
+For a temporary adjustment, drag either the **Pre-Input Delay** or **Key Interval** action onto a Mirabox knob. Each control has its own step and value, initialized from `config.ini`, held in memory only, and restored from configuration after Stream Dock restarts.
 
 ## Build from source
 
@@ -86,8 +86,8 @@ All edition metadata and localized labels live in [`i18n/`](i18n):
 
 GitHub Actions publishes all language editions together:
 
-- Push `v1.3.0` to create one `Helldivers2Dock 1.3.0` release.
-- The release contains both `Helldivers2Dock-en-1.3.0.zip` and `Helldivers2Dock-zh-CN-1.3.0.zip`.
+- Push `v1.3.1` to create one `Helldivers2Dock 1.3.1` release.
+- The release contains both `Helldivers2Dock-en-1.3.1.zip` and `Helldivers2Dock-zh-CN-1.3.1.zip`.
 
 The release workflow derives the version of every language manifest and archive from the same tag, performs one clean all-language build, validates plugin registration and archive contents, and uploads every language package to the same GitHub Release.
 

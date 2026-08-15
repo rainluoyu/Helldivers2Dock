@@ -7,12 +7,12 @@ const variants = [
   {
     locale: 'en',
     entry: path.resolve('build/com.n4pro.helldivers2dock.sdPlugin/plugin/index.js'),
-     keyIntervalAction: 'com.n4pro.helldivers2dock.key-interval'
+    inputDelayAction: 'com.n4pro.helldivers2dock.input-delay', keyIntervalAction: 'com.n4pro.helldivers2dock.key-interval'
   },
   {
     locale: 'zh-CN',
     entry: path.resolve('build/com.n4pro.helldivers2dock.zh-cn.sdPlugin/plugin/index.js'),
-     keyIntervalAction: 'com.n4pro.helldivers2dock.zh-cn.key-interval'
+    inputDelayAction: 'com.n4pro.helldivers2dock.zh-cn.input-delay', keyIntervalAction: 'com.n4pro.helldivers2dock.zh-cn.key-interval'
   }
 ];
 const requestedLocale = getOption('--locale') ?? 'all';
@@ -22,7 +22,7 @@ if (!selected.length) throw new Error(`Unknown locale '${requestedLocale}'. Expe
 for (const [index, variant] of selected.entries()) {
   await testRegistration(variant, `registration-test-${index}`);
 }
-console.log(`${selected.map((variant) => variant.locale).join(', ')} registration and key-interval knob tests passed.`);
+console.log(`${selected.map((variant) => variant.locale).join(', ')} registration and timing knob tests passed.`);
 
 async function testRegistration(variant, uuid) {
   const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
@@ -60,30 +60,39 @@ async function testRegistration(variant, uuid) {
     throw new Error(`Unexpected registration payload: ${JSON.stringify(registration.message)}`);
   }
 
-   const context = `${variant.locale}-key-interval`;
-   const configuredInterval = readConfiguredInterval(variant.entry);
-  const firstImage = receiveJson(registration.socket);
-  registration.socket.send(JSON.stringify({
-     action: variant.keyIntervalAction,
+   await testKnob(registration.socket, variant.inputDelayAction, `${variant.locale}-input-delay`, readConfiguredPreInputDelay(variant.entry), 5);
+   await testKnob(registration.socket, variant.keyIntervalAction, `${variant.locale}-key-interval`, readConfiguredInterval(variant.entry), 1);
+
+   registration.socket.close();
+   await new Promise((resolve) => server.close(resolve));
+   await childExit;
+   clearTimeout(timeout);
+ }
+
+async function testKnob(socket, action, context, configuredValue, step) {
+   const firstImage = receiveJson(socket);
+   socket.send(JSON.stringify({
+     action,
     event: 'willAppear',
     context,
     payload: { controller: 'Knob' }
-  }));
-   assertTimingImage(await firstImage, context, configuredInterval);
+   }));
+   assertTimingImage(await firstImage, context, configuredValue);
 
-  const rotatedImage = receiveJson(registration.socket);
-  registration.socket.send(JSON.stringify({
-     action: variant.keyIntervalAction,
+   const rotatedImage = receiveJson(socket);
+   socket.send(JSON.stringify({
+     action,
     event: 'dialRotate',
     context,
     payload: { controller: 'Knob', ticks: 2, pressed: false }
-  }));
-   assertTimingImage(await rotatedImage, context, Math.min(250, configuredInterval + 2));
+   }));
+   assertTimingImage(await rotatedImage, context, Math.min(250, configuredValue + 2 * step));
+}
 
-  registration.socket.close();
-  await new Promise((resolve) => server.close(resolve));
-  await childExit;
-  clearTimeout(timeout);
+function readConfiguredPreInputDelay(entry) {
+  const ini = readFileSync(path.resolve(path.dirname(entry), '..', 'config.ini'), 'utf8');
+  const value = Number(ini.match(/^\s*PreInputDelayMs\s*=\s*(\d+)/imu)?.[1] ?? 45);
+  return Math.min(250, Math.max(15, Math.round(value)));
 }
 
 function readConfiguredInterval(entry) {

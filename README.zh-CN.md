@@ -10,7 +10,7 @@ Helldivers2Dock 是一个专为 Mirabox 设备设计的 Windows Stream Dock 插�
 
 - 108 个可独立拖放的战略配备按钮。
 - 可在插件根目录的 `config.ini` 中分别设置预输入延迟（默认 `45 ms`）和按键间隔（默认 `8 ms`）。预输入延迟也用于方向键释放后的下一次输入等待。
-- 可将“按键间隔”操作拖到 Mirabox 旋钮上，以 `1 ms` 为步长在 `1–250 ms` 范围内临时调整；旋钮屏幕会用动态图片显示提示文字和当前数值。
+- 可将“预输入延迟”和“按键间隔”两个操作分别拖到 Mirabox 旋钮上独立调整；预输入延迟以 `5 ms` 为步长在 `15–250 ms` 范围内调整，按键间隔以 `1 ms` 为步长在 `1–250 ms` 范围内调整。
 - 英文版与简体中文版使用不同的插件 ID 和安装包，在同一个 Release 中统一发布，并可同时安装。
 - 使用轻量 Win32 `SendInput` 辅助程序发送默认的左 `Ctrl` + `W/A/S/D` 战略配备输入。
 
@@ -47,7 +47,7 @@ Release 压缩包只包含可安装运行文件，不包含源码、构建脚本
 
 永久调整：编辑已安装插件根目录中的 `config.ini`，在 `[Input]` 下设置 `PreInputDelayMs`（`15–250`，默认 `45`）和 `KeyIntervalMs`（`1–250`，默认 `8`），然后重启 Stream Dock。超出范围的值会自动限制到有效范围。
 
-临时调整：把分类中的“按键间隔”操作拖到 Mirabox 旋钮，旋转时每格增减 `1 ms`。旋钮屏幕会通过动态图片显示“按键间隔”和当前毫秒数。该数值初始取自 `config.ini`，只在当前插件进程内生效，不会写回配置文件；重启 Stream Dock 后恢复配置文件值。
+临时调整：把分类中的“预输入延迟”或“按键间隔”操作拖到 Mirabox 旋钮。前者旋转时每格增减 `5 ms`，后者每格增减 `1 ms`。两个数值分别初始取自 `config.ini`，只在当前插件进程内生效，不会写回配置文件；重启 Stream Dock 后恢复配置文件值。
 
 ## 从源码构建
 
@@ -86,8 +86,8 @@ npm run package:zh-CN
 
 GitHub Actions 会在一次版本更新中统一发布全部语言：
 
-- 推送 `v1.3.0`，创建一个名为 `Helldivers2Dock 1.3.0` 的 Release。
-- 同一个 Release 会同时包含 `Helldivers2Dock-en-1.3.0.zip` 和 `Helldivers2Dock-zh-CN-1.3.0.zip`。
+- 推送 `v1.3.1`，创建一个名为 `Helldivers2Dock 1.3.1` 的 Release。
+- 同一个 Release 会同时包含 `Helldivers2Dock-en-1.3.1.zip` 和 `Helldivers2Dock-zh-CN-1.3.1.zip`。
 
 统一发布工作流会从同一个标签设置所有语言 manifest 和压缩包的版本，执行一次全语言干净构建、插件注册测试及压缩包内容检查，然后把全部语言安装包上传到同一个 GitHub Release。
 

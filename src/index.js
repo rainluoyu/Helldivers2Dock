@@ -14,18 +14,22 @@ const DEFAULT_PRE_INPUT_DELAY_MS = 45;
 const DEFAULT_KEY_INTERVAL_MS = 8;
 const MIN_PRE_INPUT_DELAY_MS = 15;
 const MAX_PRE_INPUT_DELAY_MS = 250;
+const PRE_INPUT_DELAY_STEP_MS = 5;
 const MIN_KEY_INTERVAL_MS = 1;
 const MAX_KEY_INTERVAL_MS = 250;
 const KEY_INTERVAL_STEP_MS = 1;
 const CONFIG_PATH = path.join(PLUGIN_ROOT, 'config.ini');
 const HELPER_PATH = path.join(__dirname, 'bin', 'StratagemInput.exe');
 const ACTION_PREFIX = `${catalog.pluginId}.`;
+const PRE_INPUT_DELAY_ACTION = `${ACTION_PREFIX}input-delay`;
 const KEY_INTERVAL_ACTION = `${ACTION_PREFIX}key-interval`;
 const stratagems = new Map(catalog.stratagems.map((item) => [item.uuid, item]));
 
 let queue = Promise.resolve();
 const inputTiming = readInputTiming();
+let preInputDelayMs = inputTiming.preInputDelayMs;
 let keyIntervalMs = inputTiming.keyIntervalMs;
+const preInputDelayContexts = new Set();
 const keyIntervalContexts = new Set();
 const socket = new WebSocket(`ws://127.0.0.1:${PORT}`);
 
@@ -41,6 +45,10 @@ socket.on('message', (raw) => {
     return;
   }
 
+  if (message.action === PRE_INPUT_DELAY_ACTION) {
+    handlePreInputDelayAction(message);
+    return;
+  }
   if (message.action === KEY_INTERVAL_ACTION) {
     handleKeyIntervalAction(message);
     return;
@@ -67,13 +75,30 @@ socket.on('close', () => process.exit(0));
 
 function runMacro(code) {
   return new Promise((resolve, reject) => {
-    const child = spawn(HELPER_PATH, [code, String(inputTiming.preInputDelayMs), String(keyIntervalMs)], {
+    const child = spawn(HELPER_PATH, [code, String(preInputDelayMs), String(keyIntervalMs)], {
       windowsHide: true,
       stdio: 'ignore'
     });
     child.once('error', reject);
     child.once('exit', (exitCode) => (exitCode === 0 ? resolve() : reject(new Error(`Input helper exited ${exitCode}`))));
   });
+}
+
+function handlePreInputDelayAction(message) {
+  if (message.event === 'willAppear') {
+    preInputDelayContexts.add(message.context);
+    showPreInputDelay(message.context);
+    return;
+  }
+  if (message.event === 'willDisappear') {
+    preInputDelayContexts.delete(message.context);
+    return;
+  }
+  if (message.event !== 'dialRotate') return;
+  const ticks = Number(message.payload?.ticks);
+  if (!Number.isInteger(ticks) || ticks === 0) return;
+  preInputDelayMs = clamp(preInputDelayMs + ticks * PRE_INPUT_DELAY_STEP_MS, MIN_PRE_INPUT_DELAY_MS, MAX_PRE_INPUT_DELAY_MS);
+  for (const context of preInputDelayContexts) showPreInputDelay(context);
 }
 
 function handleKeyIntervalAction(message) {
@@ -100,9 +125,19 @@ function handleKeyIntervalAction(message) {
   }
 }
 
+function showPreInputDelay(context) {
+  const label = catalog.inputDelay?.displayLabel ?? 'Pre-input delay';
+  const image = createTimingImage(label, preInputDelayMs);
+  sendTimingImage(context, image);
+}
+
 function showKeyInterval(context) {
   const label = catalog.keyInterval?.displayLabel ?? 'Key interval';
   const image = createTimingImage(label, keyIntervalMs);
+  sendTimingImage(context, image);
+}
+
+function sendTimingImage(context, image) {
   sendSocketMessage({
     event: 'setImage',
     context,

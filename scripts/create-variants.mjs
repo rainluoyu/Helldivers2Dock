@@ -31,6 +31,7 @@ for (const edition of editions) {
   const catalog = structuredClone(baseCatalog);
   catalog.pluginId = locale.pluginId;
   catalog.language = locale.locale;
+  catalog.inputDelay = locale.inputDelay;
   catalog.keyInterval = locale.keyInterval;
   for (const item of catalog.stratagems) {
     item.englishName = item.name;
@@ -71,9 +72,9 @@ function createManifest(locale, catalog, version) {
         Tooltip: `${item.name} — ${item.arrows}`,
         UUID: item.uuid
       })),
-      {
-        Icon: 'static/plugin-icon.png',
-         Name: locale.keyInterval.name,
+       {
+         Icon: 'static/plugin-icon.png',
+         Name: locale.inputDelay.name,
         DisableAutomaticStates: true,
         States: [{
           Image: 'static/plugin-icon.png',
@@ -84,6 +85,17 @@ function createManifest(locale, catalog, version) {
         Controllers: ['Knob'],
         UserTitleEnabled: false,
         SupportedInMultiActions: false,
+         Tooltip: locale.inputDelay.tooltip,
+         UUID: `${locale.pluginId}.input-delay`
+       },
+       {
+         Icon: 'static/plugin-icon.png',
+         Name: locale.keyInterval.name,
+         DisableAutomaticStates: true,
+         States: [{ Image: 'static/plugin-icon.png', TitleAlignment: 'center', FontSize: '11', ShowTitle: false }],
+         Controllers: ['Knob'],
+         UserTitleEnabled: false,
+         SupportedInMultiActions: false,
          Tooltip: locale.keyInterval.tooltip,
          UUID: `${locale.pluginId}.key-interval`
       }
@@ -114,6 +126,10 @@ function createStreamDockLocale(manifest, catalog) {
   for (const item of catalog.stratagems) {
     localized[item.uuid] = { Name: item.name, Tooltip: `${item.name} — ${item.arrows}` };
   }
+  localized[`${catalog.pluginId}.input-delay`] = {
+    Name: catalog.inputDelay.name,
+    Tooltip: catalog.inputDelay.tooltip
+  };
   localized[`${catalog.pluginId}.key-interval`] = {
     Name: catalog.keyInterval.name,
     Tooltip: catalog.keyInterval.tooltip
@@ -122,7 +138,7 @@ function createStreamDockLocale(manifest, catalog) {
 }
 
 function validateLocale(locale, slugs, file) {
-  for (const field of ['locale', 'pluginId', 'version', 'plugin', 'keyInterval', 'categories', 'stratagems']) {
+  for (const field of ['locale', 'pluginId', 'version', 'plugin', 'inputDelay', 'keyInterval', 'categories', 'stratagems']) {
     if (locale[field] === undefined) throw new Error(`${file} is missing '${field}'.`);
   }
   const translated = Object.keys(locale.stratagems);
